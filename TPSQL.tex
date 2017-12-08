@@ -1,0 +1,1034 @@
+\documentclass[a4paper, 12pt]{report}
+
+\usepackage[francais]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[pdfauthor={James Main},%
+    pdftitle={Travaux Pratiques de SQL}]{hyperref}
+
+\usepackage{enumitem}
+\setlist[itemize]{label=\textbullet}
+\usepackage{verbatim}
+\usepackage[margin=1in]{geometry}
+\usepackage{textcomp}
+\usepackage{color}
+\definecolor{pblue}{rgb}{0.13,0.13,1}
+\usepackage{listings}
+\lstset{language=SQL,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  keywordstyle=\color{pblue},
+  basicstyle=\ttfamily,
+	upquote=true}
+	\usepackage{amsthm, amsmath, amssymb}
+
+\newcommand{\textSQL}[1]{\texttt{\textbf{#1}}}
+\theoremstyle{definition} \newtheorem{ex}{Exemple}
+
+\title{Travaux Pratiques de SQL}
+\author{Basé sur les notes de cours d'Alain Buys}
+\date{\today}
+\begin{document}
+\maketitle
+\tableofcontents
+\chapter*{Notes de version}
+\begin{itemize}
+  \item Première version: chapitres 1 à 13.
+	\item (23 Octobre 2017): ajout du dernier chapitre.
+	\item (25 Octobre 2017): révisions orthographiques.
+\end{itemize}
+\newpage
+\chapter{Introduction}
+Ce document constitue une adaptation textuelle des slides d'Alain Buys afin de faciliter la compréhension de l'étudiant et de préciser certains aspects de MySQL, le système d'interaction de base de données relationnelles employé dans le cadre des travaux pratiques donnés à l'UMONS dans le cadre du cours de Bases de Données I.
+
+Nous travaillons avec des bases de données relationnelles (le modèle relationnel permettant d'exprimer au travers de l'algèbre relationnelle la majorité des requêtes). Le langage employé afin d'interroger et manipuler les bases de données s'appelle \textbf{SQL}, acronyme de Structured Query Language (lit. langage de requêtes structurées). Soulignons qu'il ne s'agit pas d'un langage procédural. Il ne peut donc pas être employé à la manière des langages de programmation tels Java et Python.
+
+Dans le cadre de ce document, nous ne nous intéresserons qu'au système de gestion de base de données (abrégé SGBD) MySQL. Pour plus d'informations à son propos, veuillez directement consulter le site \url{https://dev.mysql.com/}.
+
+\section{Terminologie}
+Une base de données relationnelle est une collection de relations ou de tables à deux dimensions.
+\begin{itemize}
+\item \textbf{Rangée}: il s'agit d'une rangée de la table, ce qui correspond à un tuple de la relation en question.
+\item \textbf{Colonne}: une colonne d'une table contient toutes les valeurs pour l'attribut correspondant.
+\item \textbf{Clés primaires et extérieures}: permettent de préciser des contraintes sur les tables. D'autres contraintes existent aussi, notamment une contrainte d'unicité.
+\end{itemize}
+
+\section[Instructions]{Types d'instructions en SQL}
+\begin{itemize}
+\item \textSQL{SELECT}: sert à l'extraction de données;
+\item \textSQL{INSERT, UPDATE} et \textSQL{DELETE}: font partie du langage de manipulation de données (Data Manipulation Language, DML);
+\item \textSQL{CREATE, ALTER, DROP, RENAME} et \textSQL{TRUNCATE}: font partie du langage de définition de données (Data Definition Language, DDL);
+\item \textSQL{GRANT} et \textSQL{REVOKE}: font partie du langage de contrôle de données (Data Control Language DCL).
+\end{itemize}
+
+\chapter{Instructions SQL de base}
+\section{La commande \textSQL{SELECT}}
+Cette commande permet de sélectionner des rangées, de projeter des rangées et de joindre des rangées de différentes tables. La syntaxe est la suivante\footnote{Les éléments entre crochets sont des éléments optionnels.}:
+
+\begin{lstlisting}[frame=single]
+SELECT [DISTINCT] nomColonne1 [[AS] alias1], nomColonne2 [[AS] alias2], ...
+FROM nomTable;
+\end{lstlisting}
+
+Il s'agit de la manière la plus simple de faire appel à la clause \textSQL{SELECT}. Expliquons en détail tout ce qui précède;
+\begin{itemize}
+\item Les mots \textSQL{SELECT}, \textSQL{DISTINCT} et \textSQL{FROM} sont des mots-clefs du langage SQL. 
+	\begin{itemize}
+		\item La clause \textSQL{SELECT} spécifie les colonnes à extraire des tables. Si le symbole * est spécifié, alors toutes les colonnes sont extraites.
+		\item La clause \textSQL{FROM} spécifie la table dont sont extraites les données.
+		\item La clause \textSQL{DISTINCT} évite l'affichage de doublons dans la réponse d'une requête.
+	\end{itemize}
+\item Une requête peut prendre plusieurs lignes et s'achève systématiquement par ";".
+\item Les mots-clefs ne peuvent être raccourcis.
+\end{itemize}
+\begin{ex}
+Voici un exemple de clause \textSQL{SELECT}:
+
+\begin{lstlisting}[frame=single]
+- SELECT * FROM dept;
+- SELECT deptno "Department Number", loc Location FROM dept; 
+\end{lstlisting}
+Dans le premier exemple, toutes les données de la table \emph{dept} sont affichées. Dans le second exemple, seules les colonnes \emph{deptno} et \emph{loc} sont affichées et  à l'affichage, leur nom est remplacé par les alias Department Number et Location (notez la présence de guillemets encadrant Department Number, ils sont nécessaires car il y a plus d'un mot dans l'alias).
+\end{ex}
+
+ Le contenu des tables affichées est aligné de manière différente selon la nature du contenu; les dates et chaînes de caractère sont alignées par défaut sur la gauche, alors que les nombres sont alignés par défaut sur la droite.
+
+Il est également possible d'utiliser des opérateurs arithmétiques sur les nombres et les dates, suivant l'ordre de précédence $*$, $/$ puis $+$, $-$ (sauf en présence de parenthèses).
+\begin{ex}
+On emploie les opérateurs arithmétiques pour calculer le salaire annuel d'un employé.
+\begin{lstlisting}[frame=single]
+SELECT name, sal, 12*sal+100 FROM emp;
+\end{lstlisting}
+\end{ex}
+
+Il est important de remarquer que si une opération contient la valeur \textSQL{NULL}, alors le résultat retourné sera également \textSQL{NULL}.
+
+Il n'y a pas d'opérateur de concaténation de chaînes de caractères dans le langage SQL; on emploie à cette fin la fonction \textSQL{concat(chaîne$_1$, \ldots, chaîne$_n$)}
+
+\begin{ex}On peut ajouter manuellement des chaînes de caractère en tant qu'argument de la fonction \textSQL{concat}:
+\begin{lstlisting}[frame=single]
+SELECT concat('VAN DEN ', name) AS "Full Name" FROM emp;
+\end{lstlisting}
+\end{ex}
+
+\section{Commandes MySQL}
+L'environnement MySQL possède son propre ensemble de commandes. Elles ne permettent toutefois pas de manipuler les tables par opposition au langage SQL. Notons que contrairement aux instructions SQL, les commandes de MySQL peuvent être abrégées.
+\subsection{\textSQL{DESCRIBE}}
+Peut être abrégé en \textSQL{DESC}. Cette commande décrit la structure d'une table. Elle affiche une table contenant les champs suivants:
+	\begin{itemize}
+		\item \textbf{Field}: correspond au nom de l'attribut de la table dont les spécifications sont données dans la rangée;
+		\item \textbf{Type}: indique le type de donnée contenu dans la colonne;
+		\item \textbf{Null}: indique si la colonne peut ou non contenir la valeur null;
+		\item \textbf{Key}: indique si l'attribut a une contrainte de type clef primaire ou clef étrangère (foreign key);
+		\item \textbf{Default}: indique si une valeur par défaut a été spécialisée pour cet attribut.
+	\end{itemize}
+\subsection{Autres commandes}
+\begin{itemize}
+		\item \textSQL{show tables}: fournit une table des tables contenues dans la base de données sélectionnée;
+		\item \textSQL{Source} (abrégé \textbackslash{}.): permet d'exécuter un script de commandes SQL;
+		\item \textSQL{Edit} (abrégé \textbackslash{}e): édite le buffer SQL;
+		\item \textSQL{System} (abrégé \textbackslash{}!): suivi d'une commande, il la passe directement à l'OS (sur Unix).
+	\end{itemize}
+	
+\chapter{Sélection et classement des données}
+Afin d'introduire des conditions sur la sélection effectuée, on utilise une clause \textSQL{WHERE}:
+\section{Clause \textSQL{WHERE}}
+\begin{lstlisting}[frame=single]
+SELECT [DISTINCT] col1 [alias1], ...
+  FROM nomTable
+	[WHERE condition(s)];
+\end{lstlisting}
+
+\begin{ex}
+On doit écrire une requête qui sélectionne d'une table d'employés ceux dont le travail est CLERK:
+\begin{lstlisting}[frame=single]
+SELECT ename, job,
+ FROM emp
+ WHERE job='CLERK';
+\end{lstlisting}
+\end{ex}
+
+Notez les choses suivantes: \begin{itemize}%
+\item Les chaînes de caractère et les dates doivent être spécifiés entre apostrophes;
+\item En général, les comparaisons de chaînes de caractères sont sensibles à la casse, mais pas en MySQL;
+\item Le format des dates doit correspondre. Le format par défaut est AAAA-MM-JJ.
+\end{itemize}
+
+On exprime une condition comme suit: 
+\begin{lstlisting}[frame=single]
+WHERE expression operateur valeur 
+\end{lstlisting}
+\subsection{Opérateurs de comparaison}
+Les opérateurs de comparaison sont:
+\begin{itemize}
+	\item \textSQL{=}: égalité;
+	\item \textSQL{>}: plus grand;
+	\item \textSQL{>=}: plus grand ou égal;
+	\item \textSQL{<:} plus petit;
+	\item \textSQL{<=}: plus petit ou égal;
+	\item \textSQL{<>}: différent.
+	\item \textSQL{BETWEEN $x$ AND $y$}: vérifie si l'expression est entre les valeurs $x$ et $y$;
+	\item \textSQL{LIKE}: permet d'établir une condition sur les caractères:
+	\begin{enumerate}
+		\item "\_" désigne un caractère arbitraire,
+		\item "\%" désigne un nombre quelconque de caractères arbitraires,
+		\item"\textbackslash{}" permet d'employer les deux caractères précédents comme des caractères usuels.
+	\end{enumerate}
+	\item \textSQL{IS NULL}: vérifie si une valeur est nulle ou non.
+\end{itemize}
+
+Soulignons que ces opérateurs sont utilisables sur tous types de données, mis à part \textSQL{LIKE} qui ne sert que pour les chaînes de caractères.
+\begin{ex}
+ On veut la liste des employés dont le nom contient la lettre \emph{s} en deuxième position:
+
+\begin{lstlisting}[frame=single]
+SELECT name FROM employee
+  WHERE name LIKE '_s%';
+\end{lstlisting}
+\end{ex}
+\subsection{Opérateurs logiques}
+Les trois opérateurs logiques sont \textSQL{AND}, \textSQL{OR} et \textSQL{NOT}. Ils ont une précédence moindre que les opérateurs de comparaison, sinon par ordre décroissant de précédence, on a \textSQL{NOT}, \textSQL{AND} et finalement \textSQL{OR}. L'opérateur de négation peut être associé à d'autres opérateurs, parfois même en utilisant  la syntaxe de la langue anglaise.
+
+\begin{ex}
+On recherche la liste des employés sont les commissions sont différentes de \textSQL{NULL}:
+	\begin{lstlisting}[frame=single]
+SELECT name FROM employee
+  WHERE comm IS NOT NULL;
+  \end{lstlisting}
+Cette syntaxe est acceptée! On se serait plutôt attendu à \textSQL{comm NOT IS NULL}, de manière similaire aux autres associations de \textSQL{NOT} avec des opérateurs de comparaison.
+\end{ex}
+
+
+\section{La clause \textSQL{ORDER BY}}
+La clause \textSQL{ORDER BY}. Elle permet de classer les données à l'affichage par ordre croissant (par défaut, elles sont classées par ordre décroissant si DESC est spécifié). La syntaxe est la suivante:
+\begin{lstlisting}[frame=single]
+SELECT [DISTINCT] nomCol1, nomCol2, ...
+  FROM nomTable
+	[WHERE condition(s)]
+	[ORDER BY {nomCol|expression} [ASC|DESC] ];
+\end{lstlisting}
+\begin{ex}
+On désire trier les employés par date d'embauche:
+	\begin{lstlisting}[frame=single]
+SELECT name, job, hiredate FROM employee
+  ORDER BY hiredate;
+\end{lstlisting}
+On désire trier par salaire annuel (à l'aide d'un alias):
+	\begin{lstlisting}[frame=single]
+SELECT name, job, sal*12 annSal FROM employee
+  ORDER BY annSal;
+\end{lstlisting}
+On désire trier  les employés selon le département et le salaire (colonnes multiples):
+	\begin{lstlisting}[frame=single]
+SELECT name, sal, deptno FROM employee
+  ORDER BY deptno, sal;
+\end{lstlisting}
+\end{ex}
+
+\chapter{Fonctions sur une rangée}
+
+\section{Syntaxe}
+
+\begin{lstlisting}[frame=single]
+nomFonction(colonne ou expression, [arguments])
+\end{lstlisting}
+
+Ces fonctions retournent une valeur par rangée. Elles permettent de manipuler les chaînes de caractères, les nombres, les dates et d'effectuer des conversions de type. Elles peuvent apparaître dans les clauses \textSQL{SELECT}, \textSQL{WHERE} et \textSQL{ORDER BY}.
+
+\section{Fonctions sur les types usuels}
+Listons quelques fonctions utiles sur les types récurrents;
+\subsection{Fonctions sur les caractères}
+\begin{itemize}
+\item \textSQL{LOWER(colonne ou expression)}: retourne la chaîne en miniscules;
+\item \textSQL{UPPER(colonne ou expression)}: retourne la chaîne en majuscules;
+\item \textSQL{CONCAT(param1, param2, ...)}: retourne la concaténation des paramètres;
+\item \textSQL{SUBSTRING(colonne ou expression, m [, n])}: retourne la sous-chaîne à partir de la position $m$, longue de $n$ caractères. Si $m<0$, on compte à partir de la fin;
+\item \textSQL{LENGTH(colonne ou expression)}: retourne la longueur de la chaîne;
+\item \textSQL{INSTR(colonne ou expression, c)}: retourne la position du caractère \emph{c};
+
+\end{itemize}
+
+\subsection{Fonctions sur les nombres}
+  \begin{itemize}
+\item \textSQL{ROUND(nombre ou expression)}: arrondit selon la règle usuelle;
+\item \textSQL{TRUNCATE(nombre ou expression)}: omet les décimales;
+\item \textSQL{MOD(a, b)}: retourne le reste de la division entière de $a$ par $b$;
+\end{itemize}
+
+\subsection{Fonctions sur les dates}
+A compléter.
+
+\subsection{Table "dual"}
+Il s'agit d'une table d'une rangée et d'une seule colonne qui permet d'afficher un texte ou le résultat d'une fonction.
+\begin{ex}
+Obtenir la date courante du système:
+	\begin{lstlisting}[frame=single]
+ SELECT sysdate() 
+  FROM dual;
+\end{lstlisting}
+\end{ex}
+
+\section{Conversions}
+\subsection{Conversions implicites}
+Les conversions de nombre décimaux vers les chaînes de caractères sont implicites, de même pour les dates vers les chaînes de caractères.
+\begin{ex}
+Obtenir la date d'embauche d'un employé et son salaire sous forme d'une unique chaîne de caractères:
+	\begin{lstlisting}[frame=single]
+ SELECT concat(hiredate, ' ', sal)
+  FROM emp;
+\end{lstlisting}
+\end{ex}
+
+\subsection{Conversions explicites}
+Afin d'expliciter une conversation d'un type vers un autre, on adopte la syntaxe \textSQL{CONVERT(d, type)}:
+	\begin{ex}
+Obtenir sous forme de nombre décimal la date d'embauche des employés:
+	\begin{lstlisting}[frame=single]
+ SELECT CONVERT(hiredate, decimal)
+  FROM emp;
+\end{lstlisting}
+\end{ex}
+
+\subsection{Fonctions diverses}
+\subsubsection{\textSQL{IFNULL}}
+La fonction \textSQL{IFNULL} permet de convertir une valeur nulle en une valeur réelle. C'est un outil utile pour éviter que \textSQL{NULL} ne nuise à des opérations arithmétiques (textSQL{IS NULL} convient mieux aux opérations booléennes).
+\begin{ex}
+Calculer le revenu total d'un employé (pour les employés qui ne touchent pas de commissions, le champ est nul):
+	\begin{lstlisting}[frame=single]
+ SELECT name, sal + IFNULL(comm, 0) FROM emp;
+\end{lstlisting}
+\end{ex}
+
+\subsubsection{\textSQL{CASE}}
+La fonction \textSQL{CASE} permet de distinguer des cas selon une valeur donnée:
+	\begin{lstlisting}[frame=single]
+ CASE value WHEN cvalue1 THEN result1
+		[WHEN cvalue 2 then result2 ...]
+		[ELSE result] END
+\end{lstlisting}
+
+\chapter{Données de tables multiples}
+On peut sélectionner des données provenant de multiples tables.
+	\begin{lstlisting}[frame=single]
+ SELECT table1.col, table2.col, ...
+    FROM table1, table2
+		WHERE table1.col = table2.col;
+\end{lstlisting}
+Notez la présence d'une condition dans la forme syntaxique; si elle est omise, on obtient un produit cartésien des tables. Les noms des colonnes doivent être explicité que si deux tables partagent des noms de colonnes.
+
+La condition donnée ci-haut étant une égalité, on parle d'équi-jonction (on fait correspondre à une clef primaire une clef étrangère). Si la condition n'est pas une égalité, on parle simplement de non-équi-jonction. Il est possible d'employer les opérateurs logiques dans la condition. Il est également possible d'employer des alias dans la clause \textSQL{FROM} pour s'en servir dans le reste de l'instruction (en réalité tout alias peut-être utilisé au lieu du nom réel d'une expression dans le reste de l'instruction).
+\begin{ex}
+On désire de savoir où se situe le département de chaque employé:
+\begin{lstlisting}[frame=single]
+SELECT e.ename, e.deptno, d.loc
+  FROM emp e, dept d
+	WHERE e.deptno = d.deptno;
+\end{lstlisting}
+\end{ex}
+
+Il est également possible de joindre une table avec elle-même, ce qui est intéressant si une clef étrangère de la table est dans elle-même. On parle alors de self-jonction. Pour ce faire, il suffit de donner deux alias différents à une même table.
+\begin{ex}
+On veut obtenir le nom du manager de chaque employé
+\begin{lstlisting}[frame=single]
+SELECT e.ename, m.ename
+  FROM emp e, emp m
+	WHERE e.mgr = m.empno;
+\end{lstlisting}
+\end{ex}
+
+\chapter{Fonctions de groupe}
+
+\section{Quelques fonctions de groupe}
+Il s'agit de fonctions qui agissent sur un groupe de rangées. La syntaxe est la suivante:
+\begin{lstlisting}[frame=single]
+SELECT [col1, ...] groupFunction([DISTINCT | ALL]col)
+  FROM nomTable
+	[WHERE condition]
+	[GROUP BY col]
+	[ORDER BY col];
+\end{lstlisting}
+
+Le mot-clef \textSQL{DISTINCT} permet d'ignorer les doubles, le mot clef \textSQL{ALL} quant à lui est la valeur par défaut. En général, les valeurs nulles sont ignorées. \'Enumérons certaines de ces fonctions: 
+\begin{itemize}
+\item \textSQL{AVG}: retourne la moyenne des valeurs de la colonne sélectionnée (nécessite un paramètre numérique);
+\item \textSQL{COUNT}: compte les rangées pour lesquelles l'expression en paramètre n'a pas une valeur nulle, compte toutes les rangées si on lui passe le paramètre *;
+\item \textSQL{SUM}: retourne la somme des valeurs de la colonne sélectionnée (nécéssite un paramètre numérique);
+\item \textSQL{SDTDEV} et \textSQL{VARIANCE}: retourne l'écart-type ou la variance respectivement du contenu de la colonne sélectionnée (nécessite un paramètre numérique);
+\item \textSQL{MIN} et \textSQL{MAX}: retourne le minimum ou les maximum de la colonne passé en paramètre. Fonctionne également avec des dates et des chaînes de caractères.
+\end{itemize}
+
+\section{La clause \textSQL{GROUP BY}}
+
+La clause \textSQL{GROUP BY} permet de spécifier la manière dont doit opérer les fonctins de groupe.
+\begin{ex}
+On désire obtenir le salaire moyen de chaque département. A cette fin, on utilise une clause \textSQL{GROUP BY}:
+\begin{lstlisting}[frame=single]
+SELECT deptno, AVG(sal)
+ FROM emp
+ GROUP BY deptno;
+\end{lstlisting}
+
+On peut également cumuler plus d'un champ dans la clause \textSQL{GROUP BY}:
+\begin{lstlisting}[frame=single]
+SELECT deptno, job, AVG(sal)
+ FROM emp
+ GROUP BY deptno, job;
+\end{lstlisting}
+
+Notons qu'il est également possible d'utiliser une fonction de groupe dans une clause \textSQL{ORDER BY}. Alors, l'exemple précédent devient:
+\begin{lstlisting}[frame=single]
+SELECT deptno, AVG(sal)
+ FROM emp
+ GROUP BY deptno
+ ORDER BY AVG(sal);
+\end{lstlisting}
+\end{ex} 
+
+\section[La clause \textSQL{HAVING}]{La clause \textSQL{HAVING}: conditions sur les groupes}
+Pour introduire des conditions sur les groupes, on ne peut pas écrire:
+\begin{lstlisting}[frame=single]
+SELECT deptno, AVG(sal)
+ FROM emp
+ WHERE AVG(sal) > 2000
+ GROUP BY deptno;
+\end{lstlisting}
+
+A la place, on utilise la clause \textSQL{HAVING} qui permet d'introduire des conditions sur les groupes. Le bloc erronné précédent devient:
+\begin{lstlisting}[frame=single]
+SELECT deptno, AVG(sal)
+ FROM emp
+ GROUP BY deptno
+ HAVING AVG(sal) > 2000;
+\end{lstlisting}
+
+\chapter{Sous-requêtes}
+\section{Sous-requêtes élémentaires}
+\begin{lstlisting}[frame=single]
+SELECT col1, col2, ...
+ FROM table
+ WHERE expr OPERATOR
+   (SELECT col
+	  FROM table);
+\end{lstlisting}
+
+On peut utiliser des fonctions de groupe dans une sous-requête. De même on peut utiliser une sous-requête dans une clause \textSQL{HAVING}.
+\begin{ex}
+	On désire avoir les noms des employés dont le salaire excède le salaire moyen:
+	\begin{lstlisting}[frame=single]
+SELECT ename FROM emp
+	WHERE sal > (SELECT AVG(sal) FROM emp);
+	\end{lstlisting}
+\end{ex}
+
+\subsection*{Opérateurs de comparaison sur plusieurs rangées}
+
+Une sous-requête est invalide à partir du moment où on veut comparer un élément à un ensemble d'éléments. De même, si aucune rangée n'est retournée par la sous-requête, la sous-requête est invalide.
+\begin{ex}
+	La sous-requête suivante est fausse car on compare à un nombre une table (qui contient plus d'un élément):
+	\begin{lstlisting}[frame=single]
+SELECT ename FROM emp
+	WHERE sal > (SELECT AVG(sal)
+		          FROM emp
+		          GROUP BY deptno);
+	\end{lstlisting}
+\end{ex}
+Notons que la sous-requête de l'exemple précédent retourne plusieurs rangées. Les opérateurs \textSQL{IN}, \textSQL{ANY}, \textSQL{ALL} peuvent être employés, il s'agit de comparateurs de comparaison sur plusieurs rangées. Il est possible de combiner \textSQL{NOT} avec ces trois opérateurs. De plus, ils doivent toujours se trouver à gauche de la sous-requête (autrement dit, la sous-requête doit être à droite de l'opérateur).
+\begin{itemize}
+	\item \textSQL{ALL}: la condition est vraie si elle est vraie pour toutes les valeurs retournées.
+	\item \textSQL{ANY}: la condition est vraie si elle est vraie pour au moins une des valeurs retournées.
+	\item \textSQL{IN}: a le même fonctionnement que lorsqu'utilisé sur des listes; retourne vrai si l'expression à gauche correspond à une des valeurs retournées.
+\end{itemize}
+\begin{ex}
+  On désire une liste des employés dont le salaire excède le salaire moyen de chaque département:
+	\begin{lstlisting}[frame=single]
+SELECT ename, sal
+  FROM emp
+	WHERE sal > ALL (SELECT AVG(sal)
+		              FROM emp
+		              GROUP BY deptno);
+	\end{lstlisting}
+\end{ex}
+
+\section{Sous-requêtes complexes}
+\subsection{Conditions sur plusieurs colonnes}
+Il est possible d'avoir des conditions qui portent sur un groupe de colonnes. On emploie dès lors une sous-requête à colonnes multiples. La syntaxe est la suivante:
+\begin{lstlisting}[frame=single]
+SELECT col1, col2, ...
+ FROM table
+ WHERE (col, col, ...) OPERATOR
+   (SELECT col, col, ...
+	  FROM table
+		[WHERE condition]);
+\end{lstlisting}
+\begin{ex}
+On désire obtenir la liste des employés qui ont le même travail et département que Rogers.
+	\begin{lstlisting}[frame=single]
+SELECT ename
+  FROM emp
+	WHERE (job, deptno) = (SELECT job, deptno
+		              FROM emp
+		              WHERE ename = 'ROGERS');
+	\end{lstlisting}
+\end{ex}
+
+\subsection{Valeurs nulles dans une sous-requête}
+A compléter
+
+\subsection{Sous-requête dans une clause \textSQL{FROM}}
+Il est possible d'utiliser une sous-requête dans une clause \textSQL{FROM}. Considérons l'exemple suivant:
+\begin{ex}
+ On désire le nom des employés qui sont payés mieux que la moyenne de leur département. Pour ce faire, on emploie dans la clause \textSQL{FROM} une sous-requête permettant d'obtenir la table qui contient le numéro des département et leur salaire moyen. Notons l'emploi d'alias pour référencer la table "fabriquée" dans la clause \textSQL{FROM} ainsi que pour ses colonnes.
+\begin{lstlisting}[frame=single]
+SELECT a.ename, a.sal, a.deptno, b.salavg
+  FROM emp a (SELECT deptno, AVG(sal) salavg
+	    FROM emp
+	    GROUP BY deptno) b
+  WHERE a.deptno = b.deptno
+  AND a.sal>b.salavg
+\end{lstlisting}
+\end{ex}
+
+Lorsqu'on référence une telle table, il est important de donner des alias à ses attributs qui n'ont pas de noms (tels que les résultats de fonctions de groupe ou de l'évaluation d'une expression). Bien sûr, il faut également un alias pour la table même.
+
+\chapter{Manipulation de données}
+Les instructions DML (Data Manipulation Language) permettent les choses suivantes: \begin{itemize}
+\item Ajouter des rangées à une table;
+\item Enlever des rangées à une table;
+\item Modifier des rangées. \end{itemize}
+
+\section{Insertion de données}
+Il est possible d'insérer des données de deux manières: en spécifiant explicitement les noms de colonnes ou en fournissant un nombre d'arguments qui correspond au nombre d'attributs (de colonnes) de la table modifiée.
+\begin{lstlisting}[frame=single]
+INSERT INTO nomTable [(col [, col ...])]
+  VALUES (value [, value ...]);
+\end{lstlisting}
+\begin{ex}
+On désire ajouter un nouveau département à notre base de donnée. On peut le faire en spécifiant les noms de colonnes:
+\begin{lstlisting}[frame=single]
+INSERT INTO dept (deptno, dename, loc)
+  VALUES (50, 'DEVELOPMENT', 'DETROIT');
+\end{lstlisting}
+Ou alors en donnant trois arguments dont le type correspond à celui des attributs:
+\begin{lstlisting}[frame=single]
+INSERT INTO dept
+  VALUES (50, 'DEVELOPMENT', 'DETROIT');
+\end{lstlisting}
+\end{ex}
+Pour insérer des valeurs nulles, il suffit d'omettre le nom de la colonne dans la liste (si on suit la première manière de faire) ou alors simplement de spécifier \textSQL{NULL} (il faut éviter de mettre des guillemets ou apostrophes, sous peine d'ajouter une chaîne de caractère qui correspond à "NULL"). Il est également possible d'ajouter des valeurs de fonctions, comme \textSQL{sysdate()}.
+
+On peut copier des données d'une autre table grâce à une sous-requête. Dans ce cas, le mot-clef \textSQL{VALUES} n'est pas spécifié.
+\begin{ex}
+	Copier dans une table MANAGERS les employés qui occupent ce poste:
+\begin{lstlisting}[frame=single]
+INSERT INTO MANAGER (id, name, salary, hiredate)
+  SELECT empno, ename, sal, hiredate
+	FROM emp
+	WHERE job='MANAGER';
+\end{lstlisting}
+\end{ex}
+
+\section{Mise à jour des données d'une table}
+Pour modifier les données d'une (ou plusieurs) rangées, on emploie la clause \textSQL{UPDATE} avec la syntaxe suivante:
+\begin{lstlisting}[frame=single]
+UPDATE nomTable
+  SET col = value [, col = value, ...]
+	WHERE [condition];
+\end{lstlisting}
+Si la condition est omise, toutes les rangées sont modifiées.
+\begin{ex}
+On désire transférer l'employé dont le numéro d'identification est 7865 au département 20:
+\begin{lstlisting}[frame=single]
+UPDATE emp
+  SET deptno = 20
+	WHERE empno = 7865;
+\end{lstlisting}
+\end{ex}
+
+Il n'est pas toujours possible d'utiliser des sous-requêtes avec MySQL. En particulier, on ne peut pas utiliser une sous-requête dans une clause \textSQL{UPDATE} si la table de la clause \textSQL{FROM} de la sous-requête est cette même table. Donnons un faux-exemple:
+\begin{ex}
+L'erreur sus-mentionnée arrive dans les cas similaires à:
+\begin{lstlisting}[frame=single]
+UPDATE t1 SET col2 = (SELECT MAX(t1) FROM t1);
+\end{lstlisting}
+Une requête similaire déclenche en MySQL l'erreur 1093.
+\end{ex}
+
+\section{Suppression des données d'une table}
+Pour supprimer une (ou plusieurs) rangées, on emploie la clause \textSQL{DELETE} avec la syntaxe suivante:
+\begin{lstlisting}[frame=single]
+DELETE nomTable
+	WHERE [condition];
+\end{lstlisting}
+Si la conditions est omise, toutes les rangées sont supprimées. Il n'est pas possible de supprimer une rangée qui sert de clef étrangère dans une autre table.
+
+\section{Transactions}
+\begin{itemize}
+\item Collection d'instructions DML qui forment une unité logique;
+\item Instruction DDL (Data Definition Language);
+\item Instruction DCL (Data Control Language).
+\end{itemize}
+Ces intructions commencent dès la première instruction SQL exécutable. Elle se terminent après un \textSQL{COMMIT} (les modifications sont enregistrées) ou un \textSQL{ROLLBACK} (les modifications depuis le point de sauvegarde ou depuis le dernier enregistrement sont annulées). Les instructions DDL et DCL ont un \textSQL{COMMIT} automatique et terminent donc également les transactions. Les deux dernières raisons de termination de transaction sont la sortie de l'application par l'utilisateur ou un éventuel crash système.
+
+MySQL est lancé par défaut en mode \textSQL{AUTOCOMMIT}. Chaque modification est enregistrée immédiatement sur le disque par MySQL. Il est possible de configurer MySQL en mode non-autocommit, si des tables qui supportent des transactions sont employées (par exemple InnoDB, BDB). Pour ce faire, il faut employer la commande \textSQL{SET AUTOMMIT=0}.
+
+\begin{itemize}
+\item \textSQL{COMMIT}: termine la transaction en rendant les modifications permanentes;
+\item \textSQL{SAVEPOINT} nom : crée un repère dans la transaction.
+\item \textSQL{ROLLBACK}: termine la transaction en supprimant les modifications. S'il est précisé un point de sauvegarde (\textSQL{ROLLBACK TO SAVEPOINT nom}, où nom désigne le nom du point de sauvegarde), les modifications sont annulées jusqu'à ce repère.
+\end{itemize}
+
+Avant un \textSQL{COMMMIT} et \textSQL{ROLLBACK}, il est possible de revenir à l'état précédent et de vérifier es résultats des instructions DML à l'aide de la clause \textSQL{SELECT}. De plus, les modifications ne sont pas visibles aux autres utilisateurs et les rangées affectées par les modifications ne peuvent être modifiées par d'autres utilisateurs.
+
+\chapter{Création et gestion de tables}
+\section{Création d'une table}
+Le nom d'une table doit vérifier les propriétés suivantes:
+\begin{itemize}
+  \item Le nome doit commencer par une lettre;
+	\item Le nom doit avoir un et soixante-quatre caratères parmi A-Z, a-z, 0-9, \$, \#, ...;
+	\item Le nom ne doit correspondre à aucun mot réservé.
+\end{itemize}
+
+La syntaxe pour créer une table est la suivante:
+\begin{lstlisting}[frame=single]
+CREATE TABLE [schema] nomTable
+   (nomColonne1 typeDeDonnees1 [DEFAULT valeurParDefaut] [,  ...])
+	[ENGINE = innodb];
+\end{lstlisting}
+Le schéma est à spécifier si la table est créée pour un autre utilisateur. La valeur par défaut spécifiée est utilisé dans les \textSQL{INSERT}. En MySQL, il doit s'agir d'une constante et non pas d'une fonction ni d'une colonne.
+
+\begin{ex}
+On désire créer une table dans laquelle on va stocker les département de notre société, plus précisément leur nom, numéro et localisation.
+\begin{lstlisting}[frame=single]
+CREATE TABLE dept
+  (deptno INTEGER(2),
+	dname VARCHAR(14),
+	loc VARCHAR(13));
+\end{lstlisting}
+\end{ex}
+Introduisons quelques types de données récurrents (il en existe une pléthore d'autres):
+\begin{itemize}
+\item \textSQL{INTEGER(p)}: un entier de $p$ chiffres;
+\item \textSQL{DECIMAL(p, s)}: un réel de $p$ chiffres et de $s$ décimales;
+\item \textSQL{VARCHAR(s)}: chaîne de longueur variable de maximum $s$ caractères;
+\item \textSQL{CHAR(s)}: chaîne de longueur fixe, de $s$ caractères;
+\item \textSQL{DATE}: représente une date.
+\end{itemize}
+
+Il est également possible de créer une table à partir d'une sous-requête. La syntaxe est la suivante:
+\begin{lstlisting}[frame=single]
+CREATE TABLE nomTable [ENGINE=innodb] AS sousRequete;
+\end{lstlisting}
+Les valeurs par défaut ne sont pas transmises de cette façon.
+
+Le nom donné aux colonnes de la nouvelle table sont ceux des alias de la sous-requête. Illustrons cela par un exemple:
+\begin{ex}
+\`A partir d'une table d'employés appelé emp, on désire créer une table EMPLOYEE qui est une copie de la table emp, mais dont les noms de colonne sont différents.
+\begin{lstlisting}[frame=single]
+CREATE TABLE EMPLOYEE ENGINE=innodb AS
+  SELECT ename Name, empno id, deptno Dep
+	FROM emp;
+\end{lstlisting}
+Les colonnes de la table créée seront appelées Name, id et Dep, conformément aux alias utilisés.
+\end{ex}
+
+\section{Modification d'une table}
+Il est possible d'ajouter une colonne à une table:
+\begin{lstlisting}[frame=single]
+ALTER TABLE nomTable
+  ADD nomColonne typeDonnee [DEFAULT valeur] [,...];
+\end{lstlisting}
+
+Il est également possible de modifier le type de valeur que prend une colonne:
+\begin{lstlisting}[frame=single]
+ALTER TABLE table
+  MODIFY nomColonne typeDonnee [DEFAULT valeur] [, ...];
+\end{lstlisting}
+\begin{ex}
+On désire faire passer le nombre de caractères maximal possible pour le nom d'un employé à 20.
+\begin{lstlisting}[frame=single]
+ALTER TABLE EMPLOYEE
+  MODIFY Name VARCHAR(20);
+\end{lstlisting}
+\end{ex}
+
+\section{Suppression de tables et de leur contenu}
+\subsection{L'instruction \textSQL{DROP TABLE}}
+Cette instruction supprime une table de la base de données. Il faut faire attention parce que les tables supprimées de la sorte sont irrécupérables (à cause du \textSQL{COMMIT} implicite aux commandes de type DDL).
+\begin{lstlisting}[frame=single]
+DROP TABLE nomTable;
+\end{lstlisting}
+
+\subsection{L'instruction \textSQL{TRUNCATE}}
+Cette instruction vide une table de son contenu. Encore une fois, suite au \textSQL{COMMIT} implicite de cette commande, les données supprimées de cette manière sont irrécupérables.
+\begin{lstlisting}[frame=single]
+TRUNCATE TABLE nomTable;
+\end{lstlisting}
+
+\begin{ex}
+Supposons que l'instruction \textSQL{AUTOCOMMIT=0} ait été entrée. Supposons également que nous disposons d'une table emp qui contient 17 employés et d'une table dept qui contient 4 départements. Combien d'entrées sont affichées au terme de ces instructions?
+\begin{lstlisting}[frame=single]
+TRUNCATE TABLE emp;
+DELETE FROM dept;
+ROLLBACK;
+SELECT * FROM emp;
+SELECT * FROM dept;
+\end{lstlisting}
+Dans ce premier cas, seules les quatre entrées de la table dept seront affichées. En effet, la suppression des données de emp par l'instruction \textSQL{TRUNCATE} est définitive mais la supression des données de dept par l'instruction \textSQL{DELETE} est annulée par le \textSQL{ROLLBACK}.
+
+On se pose la même question mais face à cet exemple (on suppose à nouveau que emp contient 17 rangées et dept quatre):
+\begin{lstlisting}[frame=single]
+DELETE FROM emp;
+TRUNCATE TABLE dept;
+ROLLBACK;
+SELECT * FROM emp;
+SELECT * FROM dept;
+\end{lstlisting}
+Dans ce second cas, aucune entrée n'est affichée. En effet, la suppression par le \textSQL{DELETE} est rendue définitive par le \textSQL{COMMIT} implicite dans le \textSQL{TRUNCATE} de la ligne suivante.
+\end{ex}
+\chapter{Contraintes}
+
+\section{Les différentes contraintes}
+Les contraintes sont des règles concernant les champs d'une table. S'il y a dépendance d'une table avec une autre (par exemple par une clef étrangère), ces contraintes empêchent d'effacer une table ou une rangée. Elles sont au nombre de quatre:
+\begin{itemize}
+  \item \textSQL{NOT NULL}: empêche le champ affecté par cette contrainte de prendre la valeur \textSQL{NULL}.
+	\item \textSQL{UNIQUE}: oblige les valeurs dans une colonne (ou une combinaison de colonnes si la contrainte est posée sur plusieurs colonnes à la fois) à être deux-à-deux distinctes.
+	\item \textSQL{PRIMARY KEY}: combine les contraintes \textSQL{NOT NULL} et \textSQL{UNIQUE}.
+	\item \textSQL{FOREIGN KEY}: oblige les valeurs dans un champ à correspondre à une clef primaire (ou à une (des) colonne(s) sous la contrainte \textSQL{UNIQUE}) d'une table de référence. On parle de clef étrangère ou de clef extérieure en français.
+\end{itemize}
+Pour voir les contraintes sur les tables, il faut consulter la table \textSQL{information\_schema.table\_constraints}, non contenue dans la base de données mais dans \textSQL{information}.
+
+\section{Définition de contraintes}
+\subsection{A la création d'une table}
+Il est possible de préciser deux types de contraintes; des contraintes au niveau d'une colonne ou au niveau de la table. La syntaxe est la suivante:
+\begin{lstlisting}[frame=single]
+CREATE TABLE [schema] nomTable
+  (nomColonne typeDonnee [DEFAULT valeur][contrainteColonne],
+	[...]
+	contrainteTable [, ...]);
+\end{lstlisting}
+La syntaxe pour une contrainte de colonne est:
+\begin{lstlisting}[frame=single]
+nomColonne [CONSTRAINT nomContrainte] typeContrainte
+\end{lstlisting}
+La contrainte \textSQL{NOT NULL} ne peut être spécifiée qu'au niveau d'une colonne.
+
+La syntaxe pour une contrainte au niveau de la table est:
+\begin{lstlisting}[frame=single]
+[CONSTRAINT nomContrainte] typeContrainte(colonne, ...)
+\end{lstlisting}
+La contrainte \textSQL{UNIQUE} n'empêche pas la valeur d'être nulle. Elle ainsi que les contraintes de type \textSQL{KEY} doivent être spécifée au niveau de la table.
+
+Donnons un exemple pour illustrer ce qui précède.
+\begin{ex} \label{ex:constraints}
+On désire créer une table d'employés qui seront distingués par un numéro (num), leur nom (name), leur poste (job) et le numéro de leur département (deptno). Un employé est caractérisé par son numéro (il s'agira de la clef primaire) et doit posséder un numéro de département (il ne peut être nul).
+\begin{lstlisting}[frame=single]
+CREATE TABLE employee
+  (num INTEGER(5),
+	name VARCHAR(12),
+	job VARCHAR(12),
+	mgr INTEGER(5),
+	deptno INTEGER(2) NOT NULL,
+	CONSTRAINT emp_num_pk PRIMARY KEY(num));
+\end{lstlisting}
+\end{ex}
+
+\subsection{Ajout de contraintes}
+Il est possible d'ajouter des contraintes à une table. La syntaxe est la suivante:
+\begin{lstlisting}[frame=single]
+ALTER TABLE nomTable
+  ADD [CONSTRAINT nomContrainte] typeContrainte [(colonne, ...)];
+\end{lstlisting}
+Contrairement aux autres contraintes de table, la contrainte \textSQL{NOT NULL} doit être ajoutée de la manière suivante, en respécifiant le type de données de la colonne:
+\begin{lstlisting}[frame=single]
+ALTER TABLE nomTable
+  MODIFY nomColonne typeDonnee [DEFAULT valeur] NOT NULL;
+\end{lstlisting}
+Il ne faut pas oublier de spécifier à nouveau la valeur par défaut, le cas échéant, cette propriété est perdue. Si la table contient déjà des données, alors il ne sera pas possible de spécifier \textSQL{NOT NULL}. Cela est dû au fait qu'il pourrait y avoir des problèmes si la table contient déjà des valeurs nulles.
+
+La clause \textSQL{ALTER TABLE} est utilisée, pour rappel, afin d'ajouter, retirer ou modifier des colonnes d'une table existante. C'est cette même clause qui est utilisée pour ajouter ou laisser tomber des contraintes à une table existante.
+\section{La contrainte \textSQL{FOREIGN KEY}}
+La contrainte \textSQL{FOREIGN KEY} a des mots-clefs supplémentaires. La syntaxe est la suivante:
+\begin{lstlisting}[frame=single]
+CONSTRAINT nomContrainte FOREIGN KEY (colonne) REFERENCES nomTableRef (colRef) [ON DELETE CASCADE]
+\end{lstlisting}
+
+Si \textSQL{ON DELETE CASCADE} est spécifié, alors si une des rangées de la table \emph{référencée} est supprimée, alors toutes celles qui contiennent la valeur référencée sont supprimées. Si \textSQL{ON DELETE CASCADE} n'est pas spécifié, alors la suppression d'une rangée de la table référencée alors qu'au moins une des rangées de la table (qui référence) référence la rangée en question est interdit.
+
+\begin{ex}
+Imaginons qu'on ajoute cette ligne au code de l'exemple \ref{ex:constraints}:
+\begin{lstlisting}[frame=single]
+CONSTRAINT employee_deptno_fk FOREIGN KEY (deptno) REFERENCES dept(deptno);
+\end{lstlisting}
+
+Ici, \textSQL{ON DELETE CASCADE} n'a pas été spécifié. Il est donc impossible de supprimer un département tant qu'il y a encore un employé qui y appartient. Si \textSQL{ON DELETE CASCADE} avait été spécifié, la suppression d'un département entraînerait la suppression de tous les employés qui y travaillent de la base de données.
+\end{ex}
+
+Il est possible d'utiliser qu'une table se référence elle-même via une clef étrangère. Observons l'exemple suivant:
+\begin{ex} \label{ex:fk}
+On dispose d'une table d'employés dans laquelle les managers sont spécifiés. En particulier, un manager est un employé; on utilise une clef étrangère pour s'assurer que le manager existe déjà dans la liste d'employés. Remarquons que la valeur pour le manager peut être nulle (notamment dans le cas du chef de l'entreprise).
+\begin{lstlisting}[frame=single]
+ALTER TABLE employee
+  ADD CONSTRAINT employee_mgr_fk FOREIGN KEY (mgr) REFERENCES employee(num);
+\end{lstlisting}
+\end{ex}
+
+
+\section{Suppression de contraintes}
+Tout comme l'ajout de contraintes à une table déjà créée, il faut utiliser la clause \textSQL{ALTER TABLE}. La syntaxe est la suivante:
+\begin{lstlisting}[frame=single]
+ALTER TABLE nomTable
+  DROP [CONSTRAINT] typeContrainte nomContrainte;
+\end{lstlisting}
+
+Dans le cas particulier de la clef primaire, le nom de la contrainte ne doit pas être spécifié. S'il existe une clef étrangère référençant cette clef primaire, la syntaxe précédente échouera. Il faut spécifier en plus le mot-clef \textSQL{CASCADE}:
+\begin{lstlisting}[frame=single]
+ALTER TABLE nomTable
+  DROP PRIMARY KEY CASCADE;
+\end{lstlisting}
+Ceci "\textSQL{DROP}" toute clef étrangère référençant la clef primaire supprimée. 
+
+\begin{ex}
+On désire enlever la contrainte de clef primaire sur la table des départements dept, toutefois l'usage des numéros de département comme clef étrangère (exemple \ref{ex:fk})  empêche cette suppression. On emploie alors \textSQL{CASCADE}:
+\begin{lstlisting}[frame=single]
+ALTER TABLE dept
+  DROP PRIMARY KEY CASCADE;
+\end{lstlisting}
+
+La contrainte sur les numéros de département de la table des employés tombe également en conséquence.
+\end{ex}
+
+\chapter{Création de vues}
+\section[Introduction]{Qu'est-ce qu'une vue?}
+Une vue (\textSQL{VIEW}) est une représentation de sous-ensembles de données d'une ou de plusieurs tables. Une vue est stockée sous la forme d'une instruction \textSQL{SELECT} dans une table.Le buts de ce mécanisme est de restreindre l'acccès à certaines données, de simplifier les requêtes complexes et marquer une indépendance entre les données et les applications. On emploie la syntaxe suivante:
+\begin{lstlisting}[frame=single]
+CREATE [OR REPLACE]
+  VIEW nomVue [(alias1, ...)]AS sousRequete;
+\end{lstlisting}
+
+La sous-requête ne peut pas contenir de clause \textSQL{ORDER BY}. Les mots-clefs \textSQL{OR REPLACE} servent à recréer la vue si elle existe déjà. Les alias sont les noms attribués aux colonnes de la vue.
+
+\section{Quelques exemples de vues}
+On parle de vue simple lorsque la vue ne contient qu'une table, aucune fonction, aucun groupe.
+\begin{ex}
+On désire créer une vue pour accéder rapidement à la liste des employés du dixième département.
+\begin{lstlisting}[frame=single]
+CREATE  VIEW empdp10 AS
+  SELECT num, name, job
+  FROM employee
+  WHERE deptno = 10;
+\end{lstlisting}
+\end{ex}
+
+On parle de vue complexe dans les autres cas:
+\begin{ex}
+On désire créer une vue pour accéder rapidement aux salaires de chaque département.
+\begin{lstlisting}[frame=single]
+CREATE  VIEW dept_avg (name, minsal, maxsal, avgsal)
+  AS SELECT d.name, MIN(e.sal), MAX(e.sal), AVG(e.sal)
+  FROM employee e, dept d
+  WHERE e.deptno = d.deptno;
+	GROUP BY d.name;
+\end{lstlisting}
+\end{ex}
+
+\section{Instructions DML sur une vue}
+Les instructions DML sont toujours possibles sur des vues simples. 
+
+Il n'est pas possible d'enlever des données si une des conditions suivantes est vérifiée:
+\begin{itemize}
+  \item la vue contient des fonctions de groupe;
+	\item la vue contient une clause \textSQL{GROUP BY};
+	\item la vue contient le mot-clef \textSQL{DISTINCT}.
+\end{itemize}
+
+Il n'est pas possible de modifier des données si:
+\begin{itemize}
+\item une des conditions plus haut est vérifiée;
+\item la vue contient des tables définies par des expressions.
+\end{itemize}
+
+Il n'est pas possible d'ajouter des données si:
+\begin{itemize}
+  \item Une des conditions plus haut est vérifiée;
+	\item des colonnes avec la contrainte \textSQL{NOT NULL} se trouvent dans la table de base mais sont absentes de la vue.
+\end{itemize}
+
+\section{Suppression de vues}
+La syntaxe est la suivante:
+\begin{lstlisting}[frame=single]
+DROP VIEW nomVue;
+\end{lstlisting}
+
+\chapter{Index}
+Un index améliore la performance de certaines requêtes. il est utilisé par le serveur pour accélérer la recherche de rangées. L'index est maintenu par le serveur et indépendant de la base indexée.
+
+Une index est créé automatiquement via les contraintes \textSQL{PRIMARY KEY} et \textSQL{UNIQUE}. Pour créer un index manuellement, la syntaxe est la suivante:
+\begin{lstlisting}[frame=single]
+CREATE INDEX nomIndex
+ON nomTable (nomColonne [, nomColonne2, ...]);
+\end{lstlisting}
+
+La syntaxe pour la suppression d'index est la suivante:
+\begin{lstlisting}[frame=single]
+DROP INDEX nomIndex;
+\end{lstlisting}
+
+Il vaut mieux créer un index dans les cas suivants:
+\begin{itemize}
+  \item Lorsqu'une colonne est utilisée fréquemment dans une clause \textSQL{WHERE} ou pour joindre des tables;
+	\item Sur une colonne qui contient un grand éventail de valeurs, des valeurs nulles;
+	\item Lorsque la table est grande;
+	\item Lorsque les requête usuelles ne retournent que peu de rangées;
+	\item Les mises à jour de la table sont peu fréquentes (car une mise à jour de la table implique une mise à jour de l'index).
+\end{itemize}
+
+Un index sur une colonnes peu fréquemment utilisée est inutile.
+\chapter{Sécurité}
+Distinguons le point de vue administrateur (création d'utilisateurs, backups, etc.) et d'utilisateurs (gestion de l'accès à ses propres objets). Les utilisateurs ont certains privilèges, notamment la création d'objets (tables, vues, etc.) et l'accès aux objets (mises à jours, etc.). Il est nécessaire d'utiliser un mot de passe pour accéder à la base de données.
+
+La commande à utiliser pour modifier le mot de passe est:
+\begin{lstlisting}[frame=single]
+SET PASSWORD [FOR USER] = PASSWORD('motDePasse');
+\end{lstlisting}
+
+La syntaxe pour accorder des privilèges objets est la suivante:
+\begin{lstlisting}[frame=single]
+GRANT privilege [(colonnes)]
+ON objet
+TO utilisateur [IDENTIFIED BY 'password']
+[WITH GRANT OPTION];
+\end{lstlisting}
+Les privilèges qui peuvent être accordés sont, entre autres \textSQL{SELECT}, \textSQL{UPDATE}, \textSQL{CREATE VIEW} (etc.). Si \textSQL{ON GRANT OPTION} est spécifié, l'utilisateur auquel les privilèges ont été accordés peut les transmettre à d'autres. Les colonnes ne doivent être précisées que si on veut spécifier que le privilège ne porte que sur elles \emph{(si quelqu'un sait préciser l'utilité de ce colonnes, je serais reconnaissant)}.
+
+\begin{ex}
+On désire donner à l'utilisateur \emph{rain} le privilège de \textSQL{SELECT}, \textSQL{INSERT} et \textSQL{UPDATE} sur la table employee. On désire également qu'il puisse transférer ces privilèges.
+ \begin{lstlisting}[frame=single]
+GRANT SELECT, INSERT, UPDATE 
+ON employee
+TO rain
+WITH GRANT OPTION;
+\end{lstlisting}
+\end{ex}
+
+Si on veut limiter les colonnes auxquelles une personne a accès, il faut utiliser une vue.
+\begin{ex}
+On veut donner à l'utilisateur \emph{alys} un accès partiel à la table employee (aux numéros et aux noms des employés). Il faut d'abord créer une vue pour ce faire:
+\begin{lstlisting}[frame=single]
+CREATE VIEW empview
+(name, number) AS SELECT name, num FROM employee;
+\end{lstlisting}
+\begin{lstlisting}[frame=single]
+GRANT SELECT
+ON empview
+TO alys;
+\end{lstlisting}
+\end{ex}
+
+\begin{ex}
+\emph{rain} veut transmettre tous ses privilèges à \emph{bob}. Plutôt que de les spécifier un à un, elle écrit:
+\begin{lstlisting}[frame=single]
+GRANT ALL PRIVILEGES
+ON employee
+TO bob;
+\end{lstlisting}
+Notons que seuls les privilèges qu'a \emph{rain} sont transmis. La syntaxe fonctionne également pour transmettre tous les privilèges (dans la mesure où le transmetteur les a tous).
+\end{ex}
+
+Notons que si les tables sont dans une base de données différentes, il est nécessaire de changer de base pour y accéder (\textSQL{use \emph{nomBaseDonnees;}})
+
+Pour révoquer les privilèges transmis, il faut utiliser une clause \textSQL{REVOKE}:
+\begin{lstlisting}[frame=single]
+REVOKE privilege1 [, privilege2, ...]
+ON objet
+FROM nomUtilisateur;
+\end{lstlisting}
+Avec \textSQL{ALL}, on peut enlever tous les privilèges accordés à une personne. La suppression de privilège accordés entraîne la suppression des privilèges transmis.
+
+\chapter{Sous-requêtes correlées et opérateurs ensemblistes}
+\section{Opérateurs ensemblistes}
+
+Les opérateurs d'ensemble sont au nombre de trois. Contrairement à \textSQL{UNION} (et \textSQL{UNION ALL} qui autorise les doublons), les opérateurs \textSQL{INTERSECT} et \textSQL{MINUS} ne sont pas implémentés. Il se pourrait qu'à leur implémentation, ils portent d'autres noms que ceux-là.
+\begin{itemize}
+\item \textSQL{UNION}: il permet l'union de deux tables dont les colonnes contiennent le même type de données.
+\item \textSQL{MINUS}: il permettrait d'obtenir la première table à laquelle on aurait enlevé les éléments apparaissant dans la seconde. Il serait nécessaire d'avoir des colonnes qui contiennent le même type de données.
+\item \textSQL{INTERSECT}: il permettrait d'obtenir l'intersection de deux tables (dont les colonnes contiennent le même type de données).
+\end{itemize}
+
+\begin{ex}
+Supposons qu'on aie à notre disposition une table \emph{emp\_hist} qui contient l'historique de tous les employés. Afin d'avoir une liste complète de tous les employés, on peut exécuter la requête suivante: 
+\begin{lstlisting}[frame=single]
+SELECT ename, job, deptno
+FROM emp
+UNION
+SELECT name, title, deptid
+FROM emp_history;
+\end{lstlisting}
+En remplaçant dans le code précédent \textSQL{UNION} par \textSQL{UNION ALL}, les employés qui sont dans l'entreprise apparaîtront deux fois (puisqu'ils sont également enregistrés dans l'historique). Si on remplace \textSQL{UNION} par \textSQL{MINUS} (ce qui n'est pas possible en pratique), on obtiendrai la liste des employés qui ont quitté l'entreprise.
+\end{ex}
+
+Lors de l'emploi des opérateurs d'ensemble, il faut retenir les choses suivantes:
+\begin{itemize}
+\item Les noms de colonnes affichés sont ceux de la première requête;
+\item Les expressions dans les listes doivent correspondre en type et en nombre;
+\item Les doublons sont ignorés, sauf dans le cas de \textSQL{UNION ALL};
+\item Une clause \textSQL{ORDER BY} ne peut apparaître qu'à la fin de la requête;
+\item Il est possible de combiner les opérateurs (il est recommandé d'utiliser des parenthèses);
+\item Il est possible de laisser des champs vides (cf exemple \ref{ex:blancs}.
+\end{itemize}
+
+\begin{ex} \label{ex:blancs}
+On désire lister la date d'embauche des employés de chaque département avec la localisation des départements. Afin d'éviter de répéter la localisation, on utilise l'opérateur \textSQL{UNION} en laissant dans un \textSQL{SELECT} un blanc (une chaîne d'un espace) au lieu de la localisation et dans l'autre on fait de même mais pour la date d'embauche. 
+\begin{lstlisting}[frame=single]
+SELECT deptno, " " location, hiredate FROM emp
+UNION
+SELECT deptno, hiredate, " " FROM emp
+ORDER BY deptno, hiredate;
+\end{lstlisting} 
+Ainsi seront affichés d'abord la ligne avec la localisation puis toutes les dates, sans que soit répétée la localisation.
+\end{ex}
+
+\section{Sous-requête corrélées}
+La sous-requête est exécutée pour chaque rangée de la requête principale. Pour cela, on fait usage d'alias de tables dans la requête principal qu'on emploie ensuite dans la sous-requête. Illustrons cela par un exemple:
+\begin{ex}
+On désire lister les employés qui gagnent plus que le salaire moyen dans leur département.
+\begin{lstlisting}[frame=single]
+SELECT empno, sal, deptno
+FROM emp e
+WHERE sal > (SELECT AVG(sal) FROM emp i
+  WHERE e.deptno = i.deptno);
+\end{lstlisting}
+\end{ex}
+
+\subsection*{L'opérateur \textSQL{EXISTS}}
+
+Si la sous-requête contient une rangée, alors elle s'arrête et retourne vrai. Sinon la condition est fausse.
+\begin{ex}
+On désire lister les employés qui ont des employés sous leurs ordres.
+\begin{lstlisting}[frame=single]
+SELECT empno, deptno
+FROM emp e
+WHERE EXISTS (SELECT * FROM emp i
+  WHERE e.empno = i.mgr);
+\end{lstlisting}
+\end{ex}
+
+
+\subsection*{\textSQL{UPDATE} corrélé}
+
+Pour ceci, contentons-nous d'un exemple:
+\begin{ex}
+Ajoutons une colonne \emph{dname} dans la table \emph{emp} (en employant le champ correspondant dans \emph{dept}):
+\begin{lstlisting}[frame=single]
+ALTER TABLE emp
+ADD (dname VARCHAR(14));
+/* ajout d'une nouvelle colonne*/
+
+UPDATE emp e
+SET dname = (SELECT dname FROM dept
+  WHERE e.deptno=d.deptno);
+\end{lstlisting}
+\end{ex}
+\end{document}
