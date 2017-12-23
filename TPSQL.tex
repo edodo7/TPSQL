@@ -475,7 +475,20 @@ SELECT ename
 \end{ex}
 
 \subsection{Valeurs nulles dans une sous-requête}
-A compléter
+Dans certains cas de figures, des valeurs nulles peuvent poser problème lorsqu'elles apparaissent dans un retour de sous-requête. Ces problèmes surviennent dans les situations où la sous-requête intervient dans une condition du type \textSQL{NOT IN}.
+
+\begin{ex}
+On désire connaître quels employés on un salaire qui est égal à aucune des commissions touchées par les employés de la société. Pour ce faire, on utilise la requête suivante:
+\begin{lstlisting}[frame=single]
+SELECT ename
+ FROM emp
+ WHERE salary NOT IN
+   (SELECT commission
+	  FROM emp);
+\end{lstlisting}
+
+Le résultat de cette sous-requête est vide! Cela est dû à la présence de valeurs nulles dans la sous-requête. Le SGBD ne sait comment interpréter la valeur nulle dans ce cas de figure; on ignore ce qu'elle reflète réellement et donc il est impossible de la comparer. On pourrait assimiler la valeur nulle dans ce contexte à  la lettre blanche au Scrabble qui peut prendre n'importe quelle forme, et qui ne peut donc pas être comparée. 
+\end{ex}
 
 \subsection{Sous-requête dans une clause \textSQL{FROM}}
 Il est possible d'utiliser une sous-requête dans une clause \textSQL{FROM}. Considérons l'exemple suivant:
