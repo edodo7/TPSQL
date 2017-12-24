@@ -34,13 +34,6 @@
 \begin{document}
 \maketitle
 \tableofcontents
-\chapter*{Notes de version}
-\begin{itemize}
-  \item Première version: chapitres 1 à 13.
-	\item (23 Octobre 2017): ajout du dernier chapitre.
-	\item (25 Octobre 2017): révisions orthographiques.
-\end{itemize}
-\newpage
 \chapter{Introduction}
 Ce document constitue une adaptation textuelle des slides d'Alain Buys afin de faciliter la compréhension de l'étudiant et de préciser certains aspects de MySQL, le système d'interaction de base de données relationnelles employé dans le cadre des travaux pratiques donnés à l'UMONS dans le cadre du cours de Bases de Données I.
 
@@ -85,7 +78,7 @@ Il s'agit de la manière la plus simple de faire appel à la clause \textSQL{SEL
 \item Les mots-clefs ne peuvent être raccourcis.
 \end{itemize}
 \begin{ex}
-Voici un exemple de clause \textSQL{SELECT}:
+Voici des exemples utilisant la clause \textSQL{SELECT}:
 
 \begin{lstlisting}[frame=single]
 - SELECT * FROM dept;
@@ -94,7 +87,7 @@ Voici un exemple de clause \textSQL{SELECT}:
 Dans le premier exemple, toutes les données de la table \emph{dept} sont affichées. Dans le second exemple, seules les colonnes \emph{deptno} et \emph{loc} sont affichées et  à l'affichage, leur nom est remplacé par les alias Department Number et Location (notez la présence de guillemets encadrant Department Number, ils sont nécessaires car il y a plus d'un mot dans l'alias).
 \end{ex}
 
- Le contenu des tables affichées est aligné de manière différente selon la nature du contenu; les dates et chaînes de caractère sont alignées par défaut sur la gauche, alors que les nombres sont alignés par défaut sur la droite.
+ Le contenu des tables affichées est aligné de manière différente selon la nature du contenu: les dates et chaînes de caractère sont alignées par défaut sur la gauche, alors que les nombres sont alignés par défaut sur la droite.
 
 Il est également possible d'utiliser des opérateurs arithmétiques sur les nombres et les dates, suivant l'ordre de précédence $*$, $/$ puis $+$, $-$ (sauf en présence de parenthèses).
 \begin{ex}
@@ -108,7 +101,7 @@ Il est important de remarquer que si une opération contient la valeur \textSQL{
 
 Il n'y a pas d'opérateur de concaténation de chaînes de caractères dans le langage SQL; on emploie à cette fin la fonction \textSQL{concat(chaîne$_1$, \ldots, chaîne$_n$)}
 
-\begin{ex}On peut ajouter manuellement des chaînes de caractère en tant qu'argument de la fonction \textSQL{concat}:
+\begin{ex}On peut ajouter manuellement des chaînes de caractères en tant qu'argument de la fonction \textSQL{concat}:
 \begin{lstlisting}[frame=single]
 SELECT concat('VAN DEN ', name) AS "Full Name" FROM emp;
 \end{lstlisting}
@@ -152,8 +145,8 @@ SELECT ename, job,
 \end{ex}
 
 Notez les choses suivantes: \begin{itemize}%
-\item Les chaînes de caractère et les dates doivent être spécifiés entre apostrophes;
-\item En général, les comparaisons de chaînes de caractères sont sensibles à la casse, mais pas en MySQL;
+\item Les chaînes de caractères et les dates doivent être spécifiés entre apostrophes;
+\item En général, les comparaisons de chaînes de caractères sont sensibles à la casse, mais pas avec MySQL;
 \item Le format des dates doit correspondre. Le format par défaut est AAAA-MM-JJ.
 \end{itemize}
 
@@ -203,7 +196,7 @@ Cette syntaxe est acceptée! On se serait plutôt attendu à \textSQL{comm NOT I
 
 
 \section{La clause \textSQL{ORDER BY}}
-La clause \textSQL{ORDER BY}. Elle permet de classer les données à l'affichage par ordre croissant (par défaut, elles sont classées par ordre décroissant si DESC est spécifié). La syntaxe est la suivante:
+La clause \textSQL{ORDER BY} permet de classer les données à l'affichage par ordre croissant (par défaut). Elles sont classées par ordre décroissant si DESC est spécifié). La syntaxe est la suivante:
 \begin{lstlisting}[frame=single]
 SELECT [DISTINCT] nomCol1, nomCol2, ...
   FROM nomTable
@@ -294,7 +287,7 @@ Obtenir sous forme de nombre décimal la date d'embauche des employés:
 
 \subsection{Fonctions diverses}
 \subsubsection{\textSQL{IFNULL}}
-La fonction \textSQL{IFNULL} permet de convertir une valeur nulle en une valeur réelle. C'est un outil utile pour éviter que \textSQL{NULL} ne nuise à des opérations arithmétiques (textSQL{IS NULL} convient mieux aux opérations booléennes).
+La fonction \textSQL{IFNULL} permet de convertir une valeur nulle en une valeur réelle. C'est un outil utile pour éviter que \textSQL{NULL} ne nuise à des opérations arithmétiques (\textSQL{IS NULL} convient mieux aux opérations booléennes).
 \begin{ex}
 Calculer le revenu total d'un employé (pour les employés qui ne touchent pas de commissions, le champ est nul):
 	\begin{lstlisting}[frame=single]
@@ -306,7 +299,7 @@ Calculer le revenu total d'un employé (pour les employés qui ne touchent pas d
 La fonction \textSQL{CASE} permet de distinguer des cas selon une valeur donnée:
 	\begin{lstlisting}[frame=single]
  CASE value WHEN cvalue1 THEN result1
-		[WHEN cvalue 2 then result2 ...]
+		[WHEN cvalue2 then result2 ...]
 		[ELSE result] END
 \end{lstlisting}
 
@@ -435,7 +428,7 @@ SELECT ename FROM emp
 		          GROUP BY deptno);
 	\end{lstlisting}
 \end{ex}
-Notons que la sous-requête de l'exemple précédent retourne plusieurs rangées. Les opérateurs \textSQL{IN}, \textSQL{ANY}, \textSQL{ALL} peuvent être employés, il s'agit de comparateurs de comparaison sur plusieurs rangées. Il est possible de combiner \textSQL{NOT} avec ces trois opérateurs. De plus, ils doivent toujours se trouver à gauche de la sous-requête (autrement dit, la sous-requête doit être à droite de l'opérateur).
+Notons que la sous-requête de l'exemple précédent retourne plusieurs rangées. Les opérateurs \textSQL{IN}, \textSQL{ANY}, \textSQL{ALL} peuvent être employés, puisqu'il s'agit d'opérateurs de comparaison sur plusieurs rangées. Il est possible de combiner \textSQL{NOT} avec ces trois opérateurs. De plus, ils doivent toujours se trouver à gauche de la sous-requête (autrement dit, la sous-requête doit être à droite de l'opérateur).
 \begin{itemize}
 	\item \textSQL{ALL}: la condition est vraie si elle est vraie pour toutes les valeurs retournées.
 	\item \textSQL{ANY}: la condition est vraie si elle est vraie pour au moins une des valeurs retournées.
@@ -478,7 +471,7 @@ SELECT ename
 Dans certains cas de figures, des valeurs nulles peuvent poser problème lorsqu'elles apparaissent dans un retour de sous-requête. Ces problèmes surviennent dans les situations où la sous-requête intervient dans une condition du type \textSQL{NOT IN}.
 
 \begin{ex}
-On désire connaître quels employés on un salaire qui est égal à aucune des commissions touchées par les employés de la société. Pour ce faire, on utilise la requête suivante:
+On désire connaître quels sont les employés dont le salaire diffère de toutes les commissions touchées par les employés de la société. Pour ce faire, on utilise la requête suivante:
 \begin{lstlisting}[frame=single]
 SELECT ename
  FROM emp
@@ -493,10 +486,10 @@ Le résultat de cette sous-requête est vide! Cela est dû à la présence de va
 \subsection{Sous-requête dans une clause \textSQL{FROM}}
 Il est possible d'utiliser une sous-requête dans une clause \textSQL{FROM}. Considérons l'exemple suivant:
 \begin{ex}
- On désire le nom des employés qui sont payés mieux que la moyenne de leur département. Pour ce faire, on emploie dans la clause \textSQL{FROM} une sous-requête permettant d'obtenir la table qui contient le numéro des département et leur salaire moyen. Notons l'emploi d'alias pour référencer la table "fabriquée" dans la clause \textSQL{FROM} ainsi que pour ses colonnes.
+ On désire le nom des employés qui sont mieux payés que la moyenne de leur département. Pour ce faire, on emploie dans la clause \textSQL{FROM} une sous-requête permettant d'obtenir la table qui contient le numéro des départements et leur salaire moyen. Notons l'emploi d'alias pour référencer la table "fabriquée" dans la clause \textSQL{FROM} ainsi que pour ses colonnes.
 \begin{lstlisting}[frame=single]
 SELECT a.ename, a.sal, a.deptno, b.salavg
-  FROM emp a (SELECT deptno, AVG(sal) salavg
+  FROM emp a, (SELECT deptno, AVG(sal) salavg
 	    FROM emp
 	    GROUP BY deptno) b
   WHERE a.deptno = b.deptno
@@ -536,7 +529,7 @@ On peut copier des données d'une autre table grâce à une sous-requête. Dans 
 \begin{ex}
 	Copier dans une table MANAGERS les employés qui occupent ce poste:
 \begin{lstlisting}[frame=single]
-INSERT INTO MANAGER (id, name, salary, hiredate)
+INSERT INTO MANAGERS (id, name, salary, hiredate)
   SELECT empno, ename, sal, hiredate
 	FROM emp
 	WHERE job='MANAGER';
@@ -564,7 +557,7 @@ Il n'est pas toujours possible d'utiliser des sous-requêtes avec MySQL. En part
 \begin{ex}
 L'erreur sus-mentionnée arrive dans les cas similaires à:
 \begin{lstlisting}[frame=single]
-UPDATE t1 SET col2 = (SELECT MAX(t1) FROM t1);
+UPDATE t1 SET col1 = (SELECT MAX(col2) FROM t1);
 \end{lstlisting}
 Une requête similaire déclenche en MySQL l'erreur 1093.
 \end{ex}
@@ -580,10 +573,10 @@ Si la conditions est omise, toutes les rangées sont supprimées. Il n'est pas p
 \section{Transactions}
 \begin{itemize}
 \item Collection d'instructions DML qui forment une unité logique;
-\item Instruction DDL (Data Definition Language);
-\item Instruction DCL (Data Control Language).
+\item Instructions DDL (Data Definition Language);
+\item Instructions DCL (Data Control Language).
 \end{itemize}
-Ces intructions commencent dès la première instruction SQL exécutable. Elle se terminent après un \textSQL{COMMIT} (les modifications sont enregistrées) ou un \textSQL{ROLLBACK} (les modifications depuis le point de sauvegarde ou depuis le dernier enregistrement sont annulées). Les instructions DDL et DCL ont un \textSQL{COMMIT} automatique et terminent donc également les transactions. Les deux dernières raisons de termination de transaction sont la sortie de l'application par l'utilisateur ou un éventuel crash système.
+Ces intructions commencent dès la première instruction SQL exécutable. Elle se terminent après un \textSQL{COMMIT} (les modifications sont enregistrées) ou un \textSQL{ROLLBACK} (les modifications depuis le point de sauvegarde ou depuis le dernier enregistrement sont annulées). Les instructions DDL et DCL ont un \textSQL{COMMIT} automatique et terminent donc également les transactions. Deux autres raisons de terminaison prématurée d'une transaction sont la sortie de l'application par l'utilisateur ou un éventuel crash système.
 
 MySQL est lancé par défaut en mode \textSQL{AUTOCOMMIT}. Chaque modification est enregistrée immédiatement sur le disque par MySQL. Il est possible de configurer MySQL en mode non-autocommit, si des tables qui supportent des transactions sont employées (par exemple InnoDB, BDB). Pour ce faire, il faut employer la commande \textSQL{SET AUTOMMIT=0}.
 
@@ -593,14 +586,14 @@ MySQL est lancé par défaut en mode \textSQL{AUTOCOMMIT}. Chaque modification e
 \item \textSQL{ROLLBACK}: termine la transaction en supprimant les modifications. S'il est précisé un point de sauvegarde (\textSQL{ROLLBACK TO SAVEPOINT nom}, où nom désigne le nom du point de sauvegarde), les modifications sont annulées jusqu'à ce repère.
 \end{itemize}
 
-Avant un \textSQL{COMMMIT} et \textSQL{ROLLBACK}, il est possible de revenir à l'état précédent et de vérifier es résultats des instructions DML à l'aide de la clause \textSQL{SELECT}. De plus, les modifications ne sont pas visibles aux autres utilisateurs et les rangées affectées par les modifications ne peuvent être modifiées par d'autres utilisateurs.
+Avant un \textSQL{COMMMIT} et \textSQL{ROLLBACK}, il est possible de revenir à l'état précédent et de vérifier les résultats des instructions DML à l'aide de la clause \textSQL{SELECT}. De plus, les modifications ne sont pas visibles aux autres utilisateurs et les rangées affectées par les modifications ne peuvent être modifiées par d'autres utilisateurs.
 
 \chapter{Création et gestion de tables}
 \section{Création d'une table}
 Le nom d'une table doit vérifier les propriétés suivantes:
 \begin{itemize}
-  \item Le nome doit commencer par une lettre;
-	\item Le nom doit avoir un et soixante-quatre caratères parmi A-Z, a-z, 0-9, \$, \#, ...;
+  \item Le nom doit commencer par une lettre;
+	\item Le nom doit avoir au moins caractère et au plus soixante-quatre, parmi A-Z, a-z, 0-9, \$, \#, ...;
 	\item Le nom ne doit correspondre à aucun mot réservé.
 \end{itemize}
 
@@ -711,7 +704,7 @@ Les contraintes sont des règles concernant les champs d'une table. S'il y a dé
 	\item \textSQL{PRIMARY KEY}: combine les contraintes \textSQL{NOT NULL} et \textSQL{UNIQUE}.
 	\item \textSQL{FOREIGN KEY}: oblige les valeurs dans un champ à correspondre à une clef primaire (ou à une (des) colonne(s) sous la contrainte \textSQL{UNIQUE}) d'une table de référence. On parle de clef étrangère ou de clef extérieure en français.
 \end{itemize}
-Pour voir les contraintes sur les tables, il faut consulter la table \textSQL{information\_schema.table\_constraints}, non contenue dans la base de données mais dans \textSQL{information}.
+En consultant la table  \textSQL{information\_schema.table\_constraints}, il est possible de voir les contraintes sur les tables. Cette table n'est pas contenue dans la base de données mais dans \textSQL{information}.
 
 \section{Définition de contraintes}
 \subsection{A la création d'une table}
@@ -815,7 +808,7 @@ La contrainte sur les numéros de département de la table des employés tombe �
 
 \chapter{Création de vues}
 \section[Introduction]{Qu'est-ce qu'une vue?}
-Une vue (\textSQL{VIEW}) est une représentation de sous-ensembles de données d'une ou de plusieurs tables. Une vue est stockée sous la forme d'une instruction \textSQL{SELECT} dans une table.Le buts de ce mécanisme est de restreindre l'acccès à certaines données, de simplifier les requêtes complexes et marquer une indépendance entre les données et les applications. On emploie la syntaxe suivante:
+Une vue (\textSQL{VIEW}) est une représentation de sous-ensembles de données d'une ou de plusieurs tables. Une vue est stockée sous la forme d'une instruction \textSQL{SELECT} dans une table. Le but de ce mécanisme est de restreindre l'accès à certaines données, de simplifier les requêtes complexes et marquer une indépendance entre les données et les applications. On emploie la syntaxe suivante:
 \begin{lstlisting}[frame=single]
 CREATE [OR REPLACE]
   VIEW nomVue [(alias1, ...)]AS sousRequete;
@@ -837,7 +830,7 @@ CREATE  VIEW empdp10 AS
 
 On parle de vue complexe dans les autres cas:
 \begin{ex}
-On désire créer une vue pour accéder rapidement aux salaires de chaque département.
+On désire créer une vue pour accéder rapidement aux statistiques liées aux salaires de chaque département.
 \begin{lstlisting}[frame=single]
 CREATE  VIEW dept_avg (name, minsal, maxsal, avgsal)
   AS SELECT d.name, MIN(e.sal), MAX(e.sal), AVG(e.sal)
@@ -894,11 +887,11 @@ Il vaut mieux créer un index dans les cas suivants:
   \item Lorsqu'une colonne est utilisée fréquemment dans une clause \textSQL{WHERE} ou pour joindre des tables;
 	\item Sur une colonne qui contient un grand éventail de valeurs, des valeurs nulles;
 	\item Lorsque la table est grande;
-	\item Lorsque les requête usuelles ne retournent que peu de rangées;
+	\item Lorsque les requêtes usuelles ne retournent que peu de rangées;
 	\item Les mises à jour de la table sont peu fréquentes (car une mise à jour de la table implique une mise à jour de l'index).
 \end{itemize}
 
-Un index sur une colonnes peu fréquemment utilisée est inutile.
+Un index sur une colonne peu fréquemment utilisée est inutile.
 \chapter{Sécurité}
 Distinguons le point de vue administrateur (création d'utilisateurs, backups, etc.) et d'utilisateurs (gestion de l'accès à ses propres objets). Les utilisateurs ont certains privilèges, notamment la création d'objets (tables, vues, etc.) et l'accès aux objets (mises à jours, etc.). Il est nécessaire d'utiliser un mot de passe pour accéder à la base de données.
 
@@ -914,21 +907,21 @@ ON objet
 TO utilisateur [IDENTIFIED BY 'password']
 [WITH GRANT OPTION];
 \end{lstlisting}
-Les privilèges qui peuvent être accordés sont, entre autres \textSQL{SELECT}, \textSQL{UPDATE}, \textSQL{CREATE VIEW} (etc.). Si \textSQL{ON GRANT OPTION} est spécifié, l'utilisateur auquel les privilèges ont été accordés peut les transmettre à d'autres. Les colonnes ne doivent être précisées que si on veut spécifier que le privilège ne porte que sur elles \emph{(si quelqu'un sait préciser l'utilité de ce colonnes, je serais reconnaissant)}.
+Les privilèges qui peuvent être accordés sont, entre autres \textSQL{SELECT}, \textSQL{UPDATE}, \textSQL{CREATE VIEW} (etc.). Si \textSQL{WITH GRANT OPTION} est spécifié, l'utilisateur auquel les privilèges ont été accordés peut les transmettre à d'autres. Les colonnes ne doivent être précisées que si on veut spécifier que le privilège ne porte que sur elles \emph{(si quelqu'un sait préciser l'utilité de ce colonnes, je serais reconnaissant)}.
 
 \begin{ex}
-On désire donner à l'utilisateur \emph{rain} le privilège de \textSQL{SELECT}, \textSQL{INSERT} et \textSQL{UPDATE} sur la table employee. On désire également qu'il puisse transférer ces privilèges.
+On désire donner à l'utilisateur \emph{bob} le privilège de \textSQL{SELECT}, \textSQL{INSERT} et \textSQL{UPDATE} sur la table employee. On désire également qu'il puisse transférer ces privilèges.
  \begin{lstlisting}[frame=single]
 GRANT SELECT, INSERT, UPDATE 
 ON employee
-TO rain
+TO bob
 WITH GRANT OPTION;
 \end{lstlisting}
 \end{ex}
 
 Si on veut limiter les colonnes auxquelles une personne a accès, il faut utiliser une vue.
 \begin{ex}
-On veut donner à l'utilisateur \emph{alys} un accès partiel à la table employee (aux numéros et aux noms des employés). Il faut d'abord créer une vue pour ce faire:
+On veut donner à l'utilisateur \emph{alex} un accès partiel à la table employee (aux numéros et aux noms des employés). Il faut d'abord créer une vue pour ce faire:
 \begin{lstlisting}[frame=single]
 CREATE VIEW empview
 (name, number) AS SELECT name, num FROM employee;
@@ -936,21 +929,21 @@ CREATE VIEW empview
 \begin{lstlisting}[frame=single]
 GRANT SELECT
 ON empview
-TO alys;
+TO alex;
 \end{lstlisting}
 \end{ex}
 
 \begin{ex}
-\emph{rain} veut transmettre tous ses privilèges à \emph{bob}. Plutôt que de les spécifier un à un, elle écrit:
+\emph{bob} veut transmettre tous ses privilèges à \emph{roger}. Plutôt que de les spécifier un à un, elle écrit:
 \begin{lstlisting}[frame=single]
 GRANT ALL PRIVILEGES
 ON employee
-TO bob;
+TO roger;
 \end{lstlisting}
-Notons que seuls les privilèges qu'a \emph{rain} sont transmis. La syntaxe fonctionne également pour transmettre tous les privilèges (dans la mesure où le transmetteur les a tous).
+Notons que seuls les privilèges qu'a \emph{bob} sont transmis. La syntaxe fonctionne également pour transmettre tous les privilèges (dans la mesure où le transmetteur les a tous).
 \end{ex}
 
-Notons que si les tables sont dans une base de données différentes, il est nécessaire de changer de base pour y accéder (\textSQL{use \emph{nomBaseDonnees;}})
+Notons que si les tables sont dans des bases de données différentes, il est nécessaire de changer de base pour y accéder (\textSQL{use \emph{nomBaseDonnees;}})
 
 Pour révoquer les privilèges transmis, il faut utiliser une clause \textSQL{REVOKE}:
 \begin{lstlisting}[frame=single]
@@ -971,13 +964,13 @@ Les opérateurs d'ensemble sont au nombre de trois. Contrairement à \textSQL{UN
 \end{itemize}
 
 \begin{ex}
-Supposons qu'on aie à notre disposition une table \emph{emp\_hist} qui contient l'historique de tous les employés. Afin d'avoir une liste complète de tous les employés, on peut exécuter la requête suivante: 
+Supposons que nous ayons à notre disposition une table \emph{emp\_hist} qui contient l'historique de tous les employés. Afin d'avoir une liste complète de tous les employés, on peut exécuter la requête suivante: 
 \begin{lstlisting}[frame=single]
-SELECT ename, job, deptno
-FROM emp
-UNION
 SELECT name, title, deptid
 FROM emp_history;
+UNION
+SELECT ename, job, deptno
+FROM emp
 \end{lstlisting}
 En remplaçant dans le code précédent \textSQL{UNION} par \textSQL{UNION ALL}, les employés qui sont dans l'entreprise apparaîtront deux fois (puisqu'ils sont également enregistrés dans l'historique). Si on remplace \textSQL{UNION} par \textSQL{MINUS} (ce qui n'est pas possible en pratique), on obtiendrai la liste des employés qui ont quitté l'entreprise.
 \end{ex}
@@ -989,7 +982,7 @@ Lors de l'emploi des opérateurs d'ensemble, il faut retenir les choses suivante
 \item Les doublons sont ignorés, sauf dans le cas de \textSQL{UNION ALL};
 \item Une clause \textSQL{ORDER BY} ne peut apparaître qu'à la fin de la requête;
 \item Il est possible de combiner les opérateurs (il est recommandé d'utiliser des parenthèses);
-\item Il est possible de laisser des champs vides (cf exemple \ref{ex:blancs}.
+\item Il est possible de laisser des champs vides (cf exemple \ref{ex:blancs}).
 \end{itemize}
 
 \begin{ex} \label{ex:blancs}
@@ -1004,7 +997,7 @@ Ainsi seront affichés d'abord la ligne avec la localisation puis toutes les dat
 \end{ex}
 
 \section{Sous-requête corrélées}
-La sous-requête est exécutée pour chaque rangée de la requête principale. Pour cela, on fait usage d'alias de tables dans la requête principal qu'on emploie ensuite dans la sous-requête. Illustrons cela par un exemple:
+La sous-requête est exécutée pour chaque rangée de la requête principale. Pour cela, on fait usage d'alias de tables dans la requête principale qu'on emploie ensuite dans la sous-requête. Illustrons cela par un exemple:
 \begin{ex}
 On désire lister les employés qui gagnent plus que le salaire moyen dans leur département.
 \begin{lstlisting}[frame=single]
