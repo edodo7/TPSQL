@@ -71,7 +71,7 @@ Il s'agit de la manière la plus simple de faire appel à la clause \textSQL{SEL
 \item Les mots \textSQL{SELECT}, \textSQL{DISTINCT} et \textSQL{FROM} sont des mots-clefs du langage SQL. 
 	\begin{itemize}
 		\item La clause \textSQL{SELECT} spécifie les colonnes à extraire des tables. Si le symbole * est spécifié, alors toutes les colonnes sont extraites.
-		\item La clause \textSQL{FROM} spécifie la table dont sont extraites les données.
+		\item La clause \textSQL{FROM} spécifie la table d'où sont extraites les données.
 		\item La clause \textSQL{DISTINCT} évite l'affichage de doublons dans la réponse d'une requête.
 	\end{itemize}
 \item Une requête peut prendre plusieurs lignes et s'achève systématiquement par ";".
@@ -93,7 +93,7 @@ Il est également possible d'utiliser des opérateurs arithmétiques sur les nom
 \begin{ex}
 On emploie les opérateurs arithmétiques pour calculer le salaire annuel d'un employé.
 \begin{lstlisting}[frame=single]
-SELECT name, sal, 12*sal+100 FROM emp;
+SELECT ename, sal, 12*sal FROM emp;
 \end{lstlisting}
 \end{ex}
 
@@ -103,7 +103,7 @@ Il n'y a pas d'opérateur de concaténation de chaînes de caractères dans le l
 
 \begin{ex}On peut ajouter manuellement des chaînes de caractères en tant qu'argument de la fonction \textSQL{concat}:
 \begin{lstlisting}[frame=single]
-SELECT concat('VAN DEN ', name) AS "Full Name" FROM emp;
+SELECT concat('VAN DEN ', ename) AS "Full Name" FROM emp;
 \end{lstlisting}
 \end{ex}
 
@@ -178,17 +178,17 @@ Soulignons que ces opérateurs sont utilisables sur tous types de données, mis 
  On veut la liste des employés dont le nom contient la lettre \emph{s} en deuxième position:
 
 \begin{lstlisting}[frame=single]
-SELECT name FROM employee
-  WHERE name LIKE '_s%';
+SELECT ename FROM emp
+  WHERE ename LIKE '_s%';
 \end{lstlisting}
 \end{ex}
 \subsection{Opérateurs logiques}
 Les trois opérateurs logiques sont \textSQL{AND}, \textSQL{OR} et \textSQL{NOT}. Ils ont une précédence moindre que les opérateurs de comparaison, sinon par ordre décroissant de précédence, on a \textSQL{NOT}, \textSQL{AND} et finalement \textSQL{OR}. L'opérateur de négation peut être associé à d'autres opérateurs, parfois même en utilisant  la syntaxe de la langue anglaise.
 
 \begin{ex}
-On recherche la liste des employés sont les commissions sont différentes de \textSQL{NULL}:
+On recherche la liste des employés dont les commissions sont différentes de \textSQL{NULL}:
 	\begin{lstlisting}[frame=single]
-SELECT name FROM employee
+SELECT ename FROM emp
   WHERE comm IS NOT NULL;
   \end{lstlisting}
 Cette syntaxe est acceptée! On se serait plutôt attendu à \textSQL{comm NOT IS NULL}, de manière similaire aux autres associations de \textSQL{NOT} avec des opérateurs de comparaison.
@@ -206,17 +206,17 @@ SELECT [DISTINCT] nomCol1, nomCol2, ...
 \begin{ex}
 On désire trier les employés par date d'embauche:
 	\begin{lstlisting}[frame=single]
-SELECT name, job, hiredate FROM employee
+SELECT ename, job, hiredate FROM emp
   ORDER BY hiredate;
 \end{lstlisting}
 On désire trier par salaire annuel (à l'aide d'un alias):
 	\begin{lstlisting}[frame=single]
-SELECT name, job, sal*12 annSal FROM employee
+SELECT ename, job, sal*12 annSal FROM emp
   ORDER BY annSal;
 \end{lstlisting}
 On désire trier  les employés selon le département et le salaire (colonnes multiples):
 	\begin{lstlisting}[frame=single]
-SELECT name, sal, deptno FROM employee
+SELECT ename, sal, deptno FROM emp
   ORDER BY deptno, sal;
 \end{lstlisting}
 \end{ex}
@@ -310,9 +310,9 @@ On peut sélectionner des données provenant de multiples tables.
     FROM table1, table2
 		WHERE table1.col = table2.col;
 \end{lstlisting}
-Notez la présence d'une condition dans la forme syntaxique; si elle est omise, on obtient un produit cartésien des tables. Les noms des colonnes doivent être explicité que si deux tables partagent des noms de colonnes.
+Notez la présence d'une condition dans la forme syntaxique; si elle est omise, on obtient un produit cartésien des tables. Les noms des colonnes ne doivent être préfixés que si deux tables partagent des noms de colonnes.
 
-La condition donnée ci-haut étant une égalité, on parle d'équi-jonction (on fait correspondre à une clef primaire une clef étrangère). Si la condition n'est pas une égalité, on parle simplement de non-équi-jonction. Il est possible d'employer les opérateurs logiques dans la condition. Il est également possible d'employer des alias dans la clause \textSQL{FROM} pour s'en servir dans le reste de l'instruction (en réalité tout alias peut-être utilisé au lieu du nom réel d'une expression dans le reste de l'instruction).
+La condition donnée ci-haut étant une égalité, on parle d'équi-jonction (on fait correspondre à une clef primaire, une clef étrangère). Si la condition n'est pas une égalité, on parle simplement de non-équi-jonction. Il est possible d'employer les opérateurs logiques dans la condition. Il est également possible d'employer des alias dans la clause \textSQL{FROM} pour s'en servir dans le reste de l'instruction (en réalité tout alias peut-être utilisé au lieu du nom réel d'une expression dans le reste de l'instruction).
 \begin{ex}
 On désire de savoir où se situe le département de chaque employé:
 \begin{lstlisting}[frame=single]
@@ -355,7 +355,7 @@ Le mot-clef \textSQL{DISTINCT} permet d'ignorer les doubles, le mot clef \textSQ
 
 \section{La clause \textSQL{GROUP BY}}
 
-La clause \textSQL{GROUP BY} permet de spécifier la manière dont doit opérer les fonctins de groupe.
+La clause \textSQL{GROUP BY} permet de spécifier la manière dont doit opérer les fonctions de groupe.
 \begin{ex}
 On désire obtenir le salaire moyen de chaque département. A cette fin, on utilise une clause \textSQL{GROUP BY}:
 \begin{lstlisting}[frame=single]
@@ -457,13 +457,13 @@ SELECT col1, col2, ...
 		[WHERE condition]);
 \end{lstlisting}
 \begin{ex}
-On désire obtenir la liste des employés qui ont le même travail et département que Rogers.
+On désire obtenir la liste des employés qui ont le même travail et département que Turner.
 	\begin{lstlisting}[frame=single]
 SELECT ename
   FROM emp
 	WHERE (job, deptno) = (SELECT job, deptno
 		              FROM emp
-		              WHERE ename = 'ROGERS');
+		              WHERE ename = 'TURNER');
 	\end{lstlisting}
 \end{ex}
 
@@ -475,8 +475,8 @@ On désire connaître quels sont les employés dont le salaire diffère de toute
 \begin{lstlisting}[frame=single]
 SELECT ename
  FROM emp
- WHERE salary NOT IN
-   (SELECT commission
+ WHERE sal NOT IN
+   (SELECT comm
 	  FROM emp);
 \end{lstlisting}
 
@@ -568,7 +568,7 @@ Pour supprimer une (ou plusieurs) rangées, on emploie la clause \textSQL{DELETE
 DELETE nomTable
 	WHERE [condition];
 \end{lstlisting}
-Si la conditions est omise, toutes les rangées sont supprimées. Il n'est pas possible de supprimer une rangée qui sert de clef étrangère dans une autre table.
+Si la condition est omise, toutes les rangées sont supprimées. Il n'est pas possible de supprimer une rangée qui sert de clef étrangère dans une autre table.
 
 \section{Transactions}
 \begin{itemize}
@@ -576,12 +576,12 @@ Si la conditions est omise, toutes les rangées sont supprimées. Il n'est pas p
 \item Instructions DDL (Data Definition Language);
 \item Instructions DCL (Data Control Language).
 \end{itemize}
-Ces intructions commencent dès la première instruction SQL exécutable. Elle se terminent après un \textSQL{COMMIT} (les modifications sont enregistrées) ou un \textSQL{ROLLBACK} (les modifications depuis le point de sauvegarde ou depuis le dernier enregistrement sont annulées). Les instructions DDL et DCL ont un \textSQL{COMMIT} automatique et terminent donc également les transactions. Deux autres raisons de terminaison prématurée d'une transaction sont la sortie de l'application par l'utilisateur ou un éventuel crash système.
+Ces instructions commencent dès la première instruction SQL exécutable. Elles se terminent après un \textSQL{COMMIT} (les modifications sont enregistrées) ou un \textSQL{ROLLBACK} (les modifications depuis le point de sauvegarde ou depuis le dernier enregistrement sont annulées). Les instructions DDL et DCL ont un \textSQL{COMMIT} automatique et terminent donc également les transactions. Deux autres raisons de terminaison prématurée d'une transaction sont la sortie de l'application par l'utilisateur ou un éventuel crash système.
 
-MySQL est lancé par défaut en mode \textSQL{AUTOCOMMIT}. Chaque modification est enregistrée immédiatement sur le disque par MySQL. Il est possible de configurer MySQL en mode non-autocommit, si des tables qui supportent des transactions sont employées (par exemple InnoDB, BDB). Pour ce faire, il faut employer la commande \textSQL{SET AUTOMMIT=0}.
+MySQL est lancé par défaut en mode \textSQL{AUTOCOMMIT}. Chaque modification est enregistrée immédiatement sur le disque par MySQL. Il est possible de configurer MySQL en mode non-autocommit, si des tables qui supportent des transactions sont employées (par exemple InnoDB, BDB). Pour ce faire, il faut employer la commande \textSQL{SET AUTOCOMMIT=0}.
 
 \begin{itemize}
-\item \textSQL{COMMIT}: termine la transaction en rendant les modifications permanentes;
+\item \textSQL{COMMIT}: termine la transaction en rendant les modifications permanentes.
 \item \textSQL{SAVEPOINT} nom : crée un repère dans la transaction.
 \item \textSQL{ROLLBACK}: termine la transaction en supprimant les modifications. S'il est précisé un point de sauvegarde (\textSQL{ROLLBACK TO SAVEPOINT nom}, où nom désigne le nom du point de sauvegarde), les modifications sont annulées jusqu'à ce repère.
 \end{itemize}
@@ -593,7 +593,7 @@ Avant un \textSQL{COMMMIT} et \textSQL{ROLLBACK}, il est possible de revenir à 
 Le nom d'une table doit vérifier les propriétés suivantes:
 \begin{itemize}
   \item Le nom doit commencer par une lettre;
-	\item Le nom doit avoir au moins caractère et au plus soixante-quatre, parmi A-Z, a-z, 0-9, \$, \#, ...;
+	\item Le nom doit avoir au moins un caractère et au plus soixante-quatre, parmi A-Z, a-z, 0-9, \$, \#, ...;
 	\item Le nom ne doit correspondre à aucun mot réservé.
 \end{itemize}
 
